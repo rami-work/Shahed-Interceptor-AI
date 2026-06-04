@@ -1,7 +1,5 @@
-# Model weights (large files)
-models/*.pt
-models/*.onnx
-models/*.engine
+# Model weights
+# models/*.pt  # uncomment if you don't want to commit weights
 
 # Training runs
 runs/
