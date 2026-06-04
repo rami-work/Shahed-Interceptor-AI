@@ -144,10 +144,6 @@ Custom Shahed drone detection dataset created on Roboflow:
 - 1,582 images with bounding box annotations
 - Single class: `shahed`
 
-## License
-
-MIT License
-
 ## Author
 
 **Rami Althobait** — AI/ML Engineer

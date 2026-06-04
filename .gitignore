@@ -11,6 +11,7 @@ yolo_shahed_results/
 data/*
 !data/.gitkeep
 *.yaml
+!src/data.yaml
 !requirements.txt
 
 # Python
