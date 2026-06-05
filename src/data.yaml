@@ -2,12 +2,12 @@ train: ../train/images
 val: ../valid/images
 test: ../test/images
 
-nc: 1
-names: ['shahed']
+nc: 4
+names: ['bird', 'plane', 'pole', 'shahed']
 
 roboflow:
   workspace: ramialthobait-gmail-com
-  project: shahed_detect
+  project: shahedv3
   version: 1
   license: CC BY 4.0
-  url: https://universe.roboflow.com/ramialthobait-gmail-com/shahed-detect/dataset/1
+  url: https://universe.roboflow.com/ramialthobait-gmail-com/shahedv3

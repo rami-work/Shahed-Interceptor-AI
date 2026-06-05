@@ -1,6 +1,8 @@
 # Shahed Interceptor - AI Drone Detection & Tracking
 
-Real-time detection and tracking of Shahed drones using YOLO11 with a two-stage interception guidance system (YOLO scan → CSRT lock-on → visual servoing).
+Real-time detection and lock-on tracking of Shahed drones using YOLO11 with a two-stage pipeline: YOLO scanning -> CSRT lock-on -> visual servoing guidance.
+
+Training on 4 classes (bird, plane, pole, shahed) to reduce false positives. The tracker only locks onto shahed and ignores everything else.
 
 ## Demo
 
@@ -10,47 +12,55 @@ Real-time detection and tracking of Shahed drones using YOLO11 with a two-stage 
 
 ## Results
 
-| Metric | Value |
-|--------|-------|
-| mAP50 | **98%** |
-| Precision | **97.5%** |
-| Recall | **94.9%** |
-| mAP50-95 | **78%** |
-| Model | YOLO11-Small |
-| Resolution | 928px |
-| Dataset | Custom Shahed dataset (1,582 images) |
-| Hardware | NVIDIA RTX 2070 SUPER |
+| Class | Images | Instances | Precision | Recall | mAP50 | mAP50-95 |
+|-------|--------|-----------|-----------|--------|-------|----------|
+| shahed | 348 | 739 | 96.8% | 95.5% | **97.7%** | 76.3% |
+| plane | 85 | 89 | 96.3% | 95.5% | **95.3%** | 74.1% |
+| pole | 121 | 152 | 91.7% | 94.7% | **96.8%** | 68.0% |
+| bird | 34 | 4830 | 83.1% | 80.5% | **86.7%** | 51.6% |
+| **Overall** | 626 | 5810 | 92.0% | 91.6% | **94.1%** | 67.5% |
 
-## How It Works
+- Model: YOLO11s (19.2MB)
+- Resolution: 800px
+- Dataset: ~4,000 images, 4 classes
 
-```
-Stage 1: YOLO Detection
-    ↓ (target visible for >1s)
-Stage 2: CSRT Blind Tracking
-    ↓ (tracker locked)
-Stage 3: Visual Servoing Guidance
-    → YAW command (left/right)
-    → ALT command (up/down)
-```
+## Classes
+
+| ID | Name | Description |
+|----|------|-------------|
+| 0 | bird | Birds in the sky |
+| 1 | plane | Military aircraft |
+| 2 | pole | Utility poles and towers |
+| 3 | shahed | Shahed drone (target) |
+
+The tracker in `run_video.py` ignores classes 0-2 and only locks onto class 3 (shahed).
+
+## Limitations (honest)
+
+- Bird class is weak (86.7% mAP) due to limited varied bird images in training
+- Model trained at 800px, small objects may be missed
+- CSRT tracker drifts on fast-moving targets or occlusions
+- P-controller is basic, no PID tuning
+- Tested only on daylight footage, no night/thermal
 
 ## Project Structure
 
 ```
 Shahed-Interceptor-AI/
-├── README.md
-├── requirements.txt
-├── .gitignore
 ├── src/
-│   ├── detect.py          # simple detection
-│   ├── run_video.py       # full interception system
-│   └── train.ipynb        # training notebook
+│   ├── detect.py        simple detection only
+│   ├── run_video.py      full interception system
+│   └── train.ipynb       training notebook
 ├── assets/
 │   ├── detect1.gif
 │   └── lockin_final1.gif
 ├── models/
 │   └── best.pt
-└── data/
-    └── sample.mp4
+├── data/
+│   └── test1.mp4
+├── README.md
+├── requirements.txt
+└── .gitignore
 ```
 
 ## Installation
@@ -73,79 +83,20 @@ python src/detect.py
 python src/run_video.py
 ```
 
+Lock-on logic:
+1. YOLO scans for shahed only (ignores bird/plane/pole)
+2. Target must be visible for 1 second
+3. CSRT tracker takes over for blind tracking
+4. P-controller computes yaw/alt commands toward target
+
 ### Training
-Open `src/train.ipynb` and update the paths:
+
+Open `src/train.ipynb` in Colab and set paths to your Roboflow dataset:
 ```python
-DATA_YAML = 'path/to/your/data.yaml'
-WEIGHTS   = 'path/to/last.pt'
-RUN_NAME  = 'shahed_v1'
+DATA_YAML = 'path/to/data.yaml'
+WEIGHTS = 'yolo11s.pt'
 ```
-
-## Tips to Improve the Model
-
-### 1. Use Multi-Class Training
-The current model is trained on a single class (`shahed`). Train on a multi-class dataset to reduce false positives:
-
-```python
-# use a dataset with: bird, not, shahed
-# then filter only shahed class in inference
-for r in results:
-    for box, cls in zip(r.boxes.xyxy, r.boxes.cls):
-        if cls == 2:  # shahed class only
-            # draw box
-```
-
-### 2. Add More Training Data
-- Collect videos from different angles and lighting conditions
-- Include night vision and thermal footage
-- Add different drone models (not just Shahed-136)
-- Use Roboflow for auto-labeling: [roboflow.com](https://roboflow.com)
-
-### 3. Fine-Tune Hyperparameters
-```python
-model.train(
-    data='data.yaml',
-    epochs=100,        # more epochs
-    imgsz=1280,        # higher resolution
-    batch=4,           # smaller batch for better convergence
-    lr0=0.001,         # lower learning rate
-    mosaic=1.0,        # data augmentation
-    mixup=0.1,         # more augmentation
-)
-```
-
-### 4. Improve Tracking
-- Adjust `LOCK_TIME` in `run_video.py` (currently 1s)
-- Tune P-controller gains (`kp=0.05`)
-- Try different trackers: CSRT, KCF, MOSSE
-
-### 5. Export for Deployment
-```python
-# export to ONNX for faster inference
-model.export(format='onnx')
-
-# export to TensorRT for GPU acceleration
-model.export(format='engine', half=True)
-```
-
-## Tech Stack
-
-- **Python 3.12**
-- **YOLO11** (Ultralytics)
-- **OpenCV** (tracking + visualization)
-- **PyTorch** (backend)
-- **ByteTrack** (object tracking)
-- **imageio** (video output)
-
-## Dataset
-
-Custom Shahed drone detection dataset created on Roboflow:
-- [Roboflow Universe](https://universe.roboflow.com/ramialthobait-gmail-com/shahed-detect)
-- 1,582 images with bounding box annotations
-- Single class: `shahed`
 
 ## Author
 
-**Rami Althobait** — AI/ML Engineer
-- LinkedIn: [linkedin.com/in/ramial](https://linkedin.com/in/ramial)
-- GitHub: [github.com/rami-work](https://github.com/rami-work)
+**Rami Althobait** — ramialthobait@gmail.com

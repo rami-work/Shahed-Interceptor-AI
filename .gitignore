@@ -1,18 +1,14 @@
-# Model weights
-# models/*.pt  # uncomment if you don't want to commit weights
+# model weights committed (small enough)
+# models/*.pt
 
-# Training runs
 runs/
 yolo_shahed_results/
 
-# Dataset folders
 data/*
 !data/.gitkeep
 *.yaml
-!src/data.yaml
 !requirements.txt
 
-# Python
 __pycache__/
 *.pyc
 *.pyo
@@ -23,31 +19,27 @@ dist/
 build/
 .eggs/
 
-# Virtual environment
 venv/
 env/
 .env
 
-# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS
 .DS_Store
 Thumbs.db
 
-# Output videos
 results/
 demo/
 test/
 test_videos/
 test_results/
 
-# Jupyter Notebook
 .ipynb_checkpoints/
 
-# Temporary files
 *.tmp
 *.log
+
+.pytest_cache/
