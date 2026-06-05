@@ -1,12 +1,6 @@
 # Shahed Interceptor - AI Drone Detection & Tracking
 
-[![CI](https://github.com/rami-work/Shahed-Interceptor-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/rami-work/Shahed-Interceptor-AI/actions/workflows/ci.yml)
-[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://python.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
 Real-time detection and tracking of Shahed drones using YOLO11 with a two-stage interception guidance system (YOLO scan → CSRT lock-on → visual servoing).
-
-> **Topics:** `drone-detection` `yolo` `computer-vision` `object-detection` `shahed` `interceptor`
 
 ## Demo
 
@@ -140,7 +134,7 @@ model.export(format='engine', half=True)
 - **YOLO11** (Ultralytics)
 - **OpenCV** (tracking + visualization)
 - **PyTorch** (backend)
-- **CSRT Tracker** (object tracking)
+- **ByteTrack** (object tracking)
 - **imageio** (video output)
 
 ## Dataset
@@ -149,10 +143,6 @@ Custom Shahed drone detection dataset created on Roboflow:
 - [Roboflow Universe](https://universe.roboflow.com/ramialthobait-gmail-com/shahed-detect)
 - 1,582 images with bounding box annotations
 - Single class: `shahed`
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Author
 
